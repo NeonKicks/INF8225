@@ -135,6 +135,7 @@ def valid(model, valid_loader):
         correct += pred.eq(target.data.view_as(pred)).cpu().sum()
 
     valid_loss /= len(valid_loader.dataset)
+    print("valid_loss =========> %f" % valid_loss)
     print('\n' + "valid" + ' set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         valid_loss, correct, len(valid_loader.dataset),
         100. * correct / len(valid_loader.dataset)))
