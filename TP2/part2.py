@@ -139,7 +139,9 @@ def valid(model, valid_loader):
     print('\n' + "valid" + ' set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         valid_loss, correct, len(valid_loader.dataset),
         100. * correct / len(valid_loader.dataset)))
-    return correct / len(valid_loader.dataset)
+    print("correct ==========> %d" % correct)
+    print("correct / len(valid_loader.dataset) =======> %f" % (float(correct) / float(len(valid_loader.dataset))))
+    return float(correct) / float(len(valid_loader.dataset))
 
 def test(model, test_loader):
     model.eval()
@@ -159,8 +161,7 @@ def test(model, test_loader):
         100. * correct / len(test_loader.dataset)))
     
     
-#def experiment(model, epochs=10, lr=0.001):
-def experiment(model, epochs=1, lr=0.001):
+def experiment(model, epochs=10, lr=0.001):
     best_precision = 0
     optimizer = optim.Adam(model.parameters(), lr=lr)
     for epoch in range(1, epochs + 1):
@@ -177,7 +178,7 @@ def experiment(model, epochs=1, lr=0.001):
     return best_model, best_precision
 
 best_precision = 0
-for model in [FcNetwork(), TwoConvNetwork()]:  # add your models in the list
+for model in [FcNetwork()]:  # add your models in the list
     # model.cuda()  # if you have access to a gpu
     model, precision = experiment(model)
 
@@ -191,18 +192,5 @@ for model in [FcNetwork(), TwoConvNetwork()]:  # add your models in the list
 
 test(best_model, test_loader)
 
-"""
-
-
-      0 0 0 0 0 0
-      0 0 0 0 0 0 
-      0 0 0 0 0 0 
-      0 0 0 0 0 0 
-      0 0 0 0 0 0 
-x x x 0 0 0 0 0 0 
-x x x x
-x x x x
-x x x x
-"""
 
 
