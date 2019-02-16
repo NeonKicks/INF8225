@@ -17,6 +17,8 @@ import numpy as np
 
 
 
+
+
 ############ IMPORT DATA ############
 # Fetch data
 train_data = FashionMNIST('../data', train=True, download=True,
