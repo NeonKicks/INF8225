@@ -199,7 +199,7 @@ def test(model, test_loader):
     
 
 # ======================= COMPARING MODELS =========================
-def experiment(model, epochs=2, lr=0.001):
+def experiment(model, epochs=10, lr=0.001):
     print("Number of epochs: %i" % epochs)
     print("Learning rate: %f" % lr)
     best_precision = 0
