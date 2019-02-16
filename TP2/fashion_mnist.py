@@ -87,23 +87,6 @@ class FcNetwork(nn.Module):
 
 # Model (2):
 # Convolutional neural-network of 2 hidden layers
-#   - 1st linear transformation layer using relu activation
-#   - 2nd linear transformation layer using relu activation
-#       (Gives probabilities on the target classes)
-class TwoConvNetwork(nn.Module):
-    def __init__(self):
-        super(TwoConvNetwork, self).__init__()
-        self.conv1 = nn.Conv2d(1, 20, 5, 1)
-        self.conv2 = nn.Conv2d(20, 20, 5, 1)
-
-    def forward(self, x):
-        x = F.relu(self.conv1(x))
-        x = F.relu(self.conv2(x))
-        x = x.view(-1, 20 * 20 * 20)
-        return F.log_softmax(x, dim=1)
-
-# Model (x):
-# Convolutional neural-network of 2 hidden layers
 #   - 1st convolution layer using relu activation
 #   - 2nd linear transformation layer using relu activation
 #       (Gives probabilities on the target classes)
@@ -120,6 +103,23 @@ class OneConvOneFC(nn.Module):
         return F.log_softmax(x, dim=1)
 
 # Model (3):
+# Convolutional neural network of X hidden layers:
+#   - Convolution layer #1 using relu activation
+#   - Pooling (downsampling) layer #1
+#   - Convolution layer #2 using relu activation
+#   - Pooling (downsampling) layer #2
+#   - Fully-connected layer #1 (linear transformation) with relu activation
+#   - Fully-connected layer #2 (linear transformation) with softmax activation
+class DeepNet(nn.Module):
+    def __init__(self):
+        super(DeepNet, self).__init__()
+        #TODO
+
+    def forward(self, x):
+        #TODO
+        return F.log_softmax(x, dim=1)
+
+# Model (4):
 # Convolutional neural network of 6 hidden layers:
 #   - Convolution layer #1 using relu activation
 #   - Pooling (downsampling) layer #1
@@ -214,7 +214,7 @@ def experiment(model, epochs=10, lr=0.001):
     return best_model, best_precision
 
 best_precision = 0
-models = [OneConvOneFC()] # add your models in the list
+models = [FcNetwork(), OneConvOneFC(), DeepNet()] # add your models in the list
 for model in models:
     print("\n======================= Model: %s =====================" % model.__class__.__name__)
     # model.cuda()  # if you have access to a gpu
