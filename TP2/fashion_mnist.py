@@ -176,7 +176,7 @@ def valid(model, valid_loader):
     print("valid" + ' set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)'.format(
         valid_loss, correct, len(valid_loader.dataset),
         100. * correct / len(valid_loader.dataset)))
-    return float(correct) / float(len(valid_loader.dataset))
+    return float(correct) / float(len(valid_loader.dataset)), valid_loss
     
 def test(model, test_loader):
     model.eval()
@@ -199,18 +199,31 @@ def test(model, test_loader):
     
 
 # ======================= COMPARING MODELS =========================
-def experiment(model, epochs=10, lr=0.001):
+def experiment(model, epochs=2, lr=0.001):
     print("Number of epochs: %i" % epochs)
     print("Learning rate: %f" % lr)
     best_precision = 0
     optimizer = optim.Adam(model.parameters(), lr=lr)
-    for epoch in range(1, epochs + 1):
+    losses = []
+    precisions = []
+
+    epochs = range(1, epochs + 1)
+
+    for epoch in epochs:
         model = train(model, train_loader, optimizer)
-        precision = valid(model, valid_loader)
+        precision, model_loss = valid(model, valid_loader)
+        precisions.append(precision)
+        losses.append(model_loss)
     
         if precision > best_precision:
             best_precision = precision
             best_model = model
+
+    plt.figure("Precisions")
+    plt.plot(epochs, precisions, label=model.__class__.__name__)
+    plt.figure("Losses")
+    plt.plot(epochs, losses, label=model.__class__.__name__)
+
     return best_model, best_precision
 
 best_precision = 0
@@ -218,11 +231,27 @@ models = [FcNetwork(), OneConvOneFC(), DeepNet()] # add your models in the list
 for model in models:
     print("\n======================= Model: %s =====================" % model.__class__.__name__)
     # model.cuda()  # if you have access to a gpu
+    
+    plt.figure("Precisions")
+    plt.xlabel('Epoch number')
+    plt.ylabel('Precision')
+
+    plt.figure("Losses")
+    plt.xlabel('Epoch number')
+    plt.ylabel('Negative Log-likelihood')
     model, precision = experiment(model)
+    test(model, test_loader)
     if precision > best_precision:
         best_precision = precision
         best_model = model
 
-test(best_model, test_loader)
+# save plot
+plt.figure("Precisions")
+plt.savefig("PrecisionsPlot.png")
+plt.figure("Losses")
+plt.savefig("LossPlot.png")
+
+plt.show()
+
 
 
