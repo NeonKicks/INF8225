@@ -68,6 +68,7 @@ test_loader = torch.utils.data.DataLoader(
 
 # ==================== MODEL CLASS DEFINITION ======================
 # Model (1) already given:
+# Fully-connected network of 2 hidden layers
 #   - 1st linear transformation layer using sigmoid activation
 #   - 2nd linear transformation layer using softmax activation
 #       (Gives probabilities on the target classes)
@@ -84,19 +85,48 @@ class FcNetwork(nn.Module):
         x = F.log_softmax(self.fc2(x), dim=1)
         return x
 
+# Model (2):
+# Convolutional neural-network of 2 hidden layers
+#   - 1st linear transformation layer using relu activation
+#   - 2nd linear transformation layer using relu activation
+#       (Gives probabilities on the target classes)
 class TwoConvNetwork(nn.Module):
     def __init__(self):
         super(TwoConvNetwork, self).__init__()
-        self.conv1 = nn.Conv2d(28*28, 6, 5)
-        self.conv2 = nn.Conv2d(6, 12, 5)
+        self.conv1 = nn.Conv2d(1, 20, 5, 1)
+        self.conv2 = nn.Conv2d(20, 20, 5, 1)
 
-    def forward(self, image):
-        batch_size = image.size()[0]
-        x = image.view(batch_size, -1)
+    def forward(self, x):
         x = F.relu(self.conv1(x))
-        x = F.log_softmax(self.fc2(x), dim=1)
-        return x
+        x = F.relu(self.conv2(x))
+        x = x.view(-1, 20 * 20 * 20)
+        return F.log_softmax(x, dim=1)
 
+# Model (x):
+# Convolutional neural-network of 2 hidden layers
+#   - 1st convolution layer using relu activation
+#   - 2nd linear transformation layer using relu activation
+#       (Gives probabilities on the target classes)
+class OneConvOneFC(nn.Module):
+    def __init__(self):
+        super(OneConvOneFC, self).__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5, 1)
+        self.fc1 = nn.Linear(24 * 24 * 20, 10)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        x = x.view(-1, 24 * 24 * 20)
+        x = F.log_softmax(self.fc1(x), dim=1)
+        return F.log_softmax(x, dim=1)
+
+# Model (3):
+# Convolutional neural network of 6 hidden layers:
+#   - Convolution layer #1 using relu activation
+#   - Pooling (downsampling) layer #1
+#   - Convolution layer #2 using relu activation
+#   - Pooling (downsampling) layer #2
+#   - Fully-connected layer #1 (linear transformation) with relu activation
+#   - Fully-connected layer #2 (linear transformation) with softmax activation
 class DeepNet(nn.Module):
     def __init__(self):
         super(DeepNet, self).__init__()
@@ -163,13 +193,15 @@ def test(model, test_loader):
           correct += pred.eq(target.data.view_as(pred)).cpu().sum()
 
     test_loss /= len(test_loader.dataset)
-    print('/n' + "test" + ' set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
+    print('\n' + "test" + ' set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
     
 
 # ======================= COMPARING MODELS =========================
 def experiment(model, epochs=10, lr=0.001):
+    print("Number of epochs: %i" % epochs)
+    print("Learning rate: %f" % lr)
     best_precision = 0
     optimizer = optim.Adam(model.parameters(), lr=lr)
     for epoch in range(1, epochs + 1):
@@ -182,7 +214,7 @@ def experiment(model, epochs=10, lr=0.001):
     return best_model, best_precision
 
 best_precision = 0
-models = [DeepNet()] # add your models in the list
+models = [OneConvOneFC()] # add your models in the list
 for model in models:
     print("\n======================= Model: %s =====================" % model.__class__.__name__)
     # model.cuda()  # if you have access to a gpu
