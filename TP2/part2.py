@@ -95,16 +95,77 @@ class FcNetwork(nn.Module):
         return x
 
 
-class TwoConvNetwork(nn.Module):
+class TwoConv3Full(nn.Module):
     def __init__(self):
-        super(TwoConvNetwork, self).__init__()
-        self.conv1 = nn.Conv2d(1, 20, 5)
-        self.conv2 = nn.Conv2d(20, 20, 5)
+        super(TwoConv3Full, self).__init__()
+        self.n_filters_1 = 6
+        self.kernel_size_1 = 5
+        self.pool_downsize_1 = 2
+        self.n_filters_2 = 16
+        self.kernel_size_2 = 5
+        self.pool_downsize_2 = 2
+        self.fc1_outFactors = 120
+        self.fc2_outFactors = 100
+        self.fc3_outFactors = 10
+        self.conv1 = nn.Conv2d(1 , self.n_filters_1, self.kernel_size_1, padding=2)
+        self.pool1 = nn.MaxPool2d(self.pool_downsize_1, stride = self.pool_downsize_1)
+        self.conv2 = nn.Conv2d(self.n_filters_1, self.n_filters_2, self.kernel_size_2, padding=2)
+        self.pool2 = nn.MaxPool2d(self.pool_downsize_2, stride = self.pool_downsize_2)
+        self.fc1 = nn.Linear(7 * 7 * self.n_filters_2, self.fc1_outFactors)
+        self.fc2 = nn.Linear(self.fc1_outFactors, self.fc2_outFactors)
+        self.fc3 = nn.Linear(self.fc2_outFactors, self.fc3_outFactors)
+
 
     def forward(self, x):
-       x = F.relu(self.conv1(x))
-       return F.relu(self.conv2(x))
+        x = F.tanh(self.conv1(x))
+        x = self.pool1(x)
+        x = F.tanh(self.conv2(x))
+        x = self.pool2(x)
+        x = x.view(-1, 7 * 7 * self.n_filters_2)
+        x = F.tanh(self.fc1(x))
+        x = F.tanh(self.fc2(x))
+        x = F.tanh(self.fc3(x))
+        return F.softmax(x, dim=1)
 
+
+class Net(nn.Module):
+    def __init__(self):
+        super(Net, self).__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5, 1)
+        self.conv2 = nn.Conv2d(20, 50, 5, 1)
+        self.fc1 = nn.Linear(4*4*50, 500)
+        self.fc2 = nn.Linear(500, 10)
+
+    def forward(self, x):
+        x = F.tanh(self.conv1(x))
+        x = F.max_pool2d(x, 2, 2)
+        x = F.tanh(self.conv2(x))
+        x = F.max_pool2d(x, 2, 2)
+        x = x.view(-1, 4*4*50)
+        x = F.tanh(self.fc1(x))
+        x = self.fc2(x)
+        return F.log_softmax(x, dim=1)
+        
+        
+class TwoConvs(nn.Module):
+    def __init__(self):
+        super(TwoConvs, self).__init__()
+        self.conv1 = nn.Conv2d( 1, 20, 5, 1, padding=2)
+        self.conv2 = nn.Conv2d(20, 10, 5, 1, padding=2)
+
+        self.fc1 = nn.Linear(28*28*10, 10)
+
+
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        x = F.relu(self.conv2(x))
+
+        x = x.view(-1, 28 * 28 * 10)
+
+        x = F.log_softmax(self.fc1(x), dim=1)
+
+        return x
 
 
 ######### FUNCTIONS ##########
@@ -125,14 +186,16 @@ def valid(model, valid_loader):
     model.eval()
     valid_loss = 0
     correct = 0
-    for data, target in valid_loader:
-        # data, target = Variable(data, volatile=True).cuda(), Variable(target).cuda() # if you have access to a gpu
-        data, target = Variable(data, volatile=True), Variable(target)
-        output = model(data)
-        #valid_loss += F.nll_loss(output, target, size_average=False).data[0] # sum up batch loss
-        valid_loss += F.nll_loss(output, target, size_average=False).data.item() # sum up batch loss
-        pred = output.data.max(1, keepdim=True)[1] # get the index of the max log-probability
-        correct += pred.eq(target.data.view_as(pred)).cpu().sum()
+    with torch.no_grad():
+        for data, target in valid_loader:
+            # data, target = Variable(data, volatile=True).cuda(), Variable(target).cuda() # if you have access to a gpu
+            #data, target = Variable(data, volatile=True), Variable(target)
+            output = model(data)
+            #valid_loss += F.nll_loss(output, target, size_average=False).data[0] # sum up batch loss
+            #valid_loss += F.nll_loss(output, target, size_average=False).data.item() # sum up batch loss
+            valid_loss += F.nll_loss(output, target, reduction='sum').data.item() # sum up batch loss
+            pred = output.data.max(1, keepdim=True)[1] # get the index of the max log-probability
+            correct += pred.eq(target.data.view_as(pred)).cpu().sum()
 
     valid_loss /= len(valid_loader.dataset)
     print("valid_loss =========> %f" % valid_loss)
@@ -147,13 +210,15 @@ def test(model, test_loader):
     model.eval()
     test_loss = 0
     correct = 0
-    for data, target in test_loader:
-        # data, target = Variable(data, volatile=True).cuda(), Variable(target).cuda() # if you have access to a gpu
-        data, target = Variable(data, volatile=True), Variable(target)
-        output = model(data)
-        test_loss += F.nll_loss(output, target, size_average=False).data.item() # sum up batch loss
-        pred = output.data.max(1, keepdim=True)[1] # get the index of the max log-probability
-        correct += pred.eq(target.data.view_as(pred)).cpu().sum()
+    with torch.no_grad():
+        for data, target in test_loader:
+            # data, target = Variable(data, volatile=True).cuda(), Variable(target).cuda() # if you have access to a gpu
+            #data, target = Variable(data, volatile=True), Variable(target)
+            output = model(data)
+            #test_loss += F.nll_loss(output, target, size_average=False).data.item() # sum up batch loss
+            test_loss += F.nll_loss(output, target, reduction='sum').data.item() # sum up batch loss
+            pred = output.data.max(1, keepdim=True)[1] # get the index of the max log-probability
+            correct += pred.eq(target.data.view_as(pred)).cpu().sum()
 
     test_loss /= len(test_loader.dataset)
     print('\n' + "test" + ' set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
@@ -178,7 +243,7 @@ def experiment(model, epochs=10, lr=0.001):
     return best_model, best_precision
 
 best_precision = 0
-for model in [FcNetwork()]:  # add your models in the list
+for model in [TwoConvs()]:  # add your models in the list
     # model.cuda()  # if you have access to a gpu
     model, precision = experiment(model)
 
