@@ -5,11 +5,13 @@ import torch
 from torch import nn
 from torch import optim
 from torch.autograd import Variable
+import torch.nn.functional as F
 import torchvision
 import torchvision.transforms as transforms
-import torch.nn.functional as F
 from fashion import FashionMNIST
 
+
+# ======================= IMPORTING DATA =========================
 train_data = FashionMNIST('../data', train=True, download=True,
                    transform=transforms.Compose([
                        transforms.ToTensor(),
@@ -22,26 +24,32 @@ valid_data = FashionMNIST('../data', train=True, download=True,
                        transforms.Normalize((0.1307,), (0.3081,))
                    ]))
 
+# Randomly select indexes that will be used as training examples
 train_idx = np.random.choice(train_data.train_data.shape[0], 54000, replace=False)
 
+# Remove non-train examples from 'train_data'
 train_data.train_data = train_data.train_data[train_idx, :]
 train_data.train_labels = train_data.train_labels[torch.from_numpy(train_idx).type(torch.LongTensor)]
 
+# Create a mask for all non-train data
 mask = np.ones(60000)
 mask[train_idx] = 0
 
+# Remove train examples from valid_data
 valid_data.train_data = valid_data.train_data[torch.from_numpy(np.argwhere(mask)), :].squeeze()
 valid_data.train_labels = valid_data.train_labels[torch.from_numpy(mask).type(torch.ByteTensor)]
 
 batch_size = 100
 test_batch_size = 100
 
+# Create dataloaders for both the train_data and the valid_data
 train_loader = torch.utils.data.DataLoader(train_data,
     batch_size=batch_size, shuffle=True)
 
 valid_loader = torch.utils.data.DataLoader(valid_data,
     batch_size=batch_size, shuffle=True)
 
+# Create dataloader for test data
 test_loader = torch.utils.data.DataLoader(
     FashionMNIST('../data', train=False, transform=transforms.Compose([
                        transforms.ToTensor(),
@@ -50,10 +58,19 @@ test_loader = torch.utils.data.DataLoader(
     batch_size=test_batch_size, shuffle=True)
 
 
-plt.imshow(train_loader.dataset.train_data[1].numpy())
-plt.imshow(train_loader.dataset.train_data[10].numpy())
+# ==== Display an image in the dataset ====
+# plt.imshow(train_loader.dataset.train_data[1].numpy())
+# plt.show()
+# plt.show(train_loader.dataset.train_data[10].numpy())
+# plt.show()
 
 
+
+# ==================== MODEL CLASS DEFINITION ======================
+# Model (1) already given:
+#   - 1st linear transformation layer using sigmoid activation
+#   - 2nd linear transformation layer using softmax activation
+#       (Gives probabilities on the target classes)
 class FcNetwork(nn.Module):
     def __init__(self):
         super().__init__()
@@ -63,11 +80,42 @@ class FcNetwork(nn.Module):
     def forward(self, image):
         batch_size = image.size()[0]
         x = image.view(batch_size, -1)
-        x = F.sigmoid(self.fc1(x))
+        x = torch.sigmoid(self.fc1(x))
         x = F.log_softmax(self.fc2(x), dim=1)
         return x
 
+class TwoConvNetwork(nn.Module):
+    def __init__(self):
+        super(TwoConvNetwork, self).__init__()
+        self.conv1 = nn.Conv2d(28*28, 6, 5)
+        self.conv2 = nn.Conv2d(6, 12, 5)
 
+    def forward(self, image):
+        batch_size = image.size()[0]
+        x = image.view(batch_size, -1)
+        x = F.relu(self.conv1(x))
+        x = F.log_softmax(self.fc2(x), dim=1)
+        return x
+
+class DeepNet(nn.Module):
+    def __init__(self):
+        super(DeepNet, self).__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5, 1)
+        self.conv2 = nn.Conv2d(20, 50, 5, 1)
+        self.fc1 = nn.Linear(4 * 4 * 50, 500)
+        self.fc2 = nn.Linear(500, 10)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        x = F.max_pool2d(x, 2, 2)
+        x = F.relu(self.conv2(x))
+        x = F.max_pool2d(x, 2, 2)
+        x = x.view(-1, 4 * 4 * 50)
+        x = F.relu(self.fc1(x))
+        x = self.fc2(x)
+        return F.log_softmax(x, dim=1)
+
+# ======================= MODEL TRAINING =========================
 def train(model, train_loader, optimizer):
     model.train()
     for batch_idx, (data, target) in enumerate(train_loader):
@@ -85,39 +133,42 @@ def valid(model, valid_loader):
     model.eval()
     valid_loss = 0
     correct = 0
-    for data, target in valid_loader:
-        # data, target = Variable(data, volatile=True).cuda(), Variable(target).cuda() # if you have access to a gpu
-        data, target = Variable(data, volatile=True), Variable(target)
-        output = model(data)
-        valid_loss += F.nll_loss(output, target, size_average=False).data[0] # sum up batch loss
-        pred = output.data.max(1, keepdim=True)[1] # get the index of the max log-probability
-        correct += pred.eq(target.data.view_as(pred)).cpu().sum()
+    with torch.no_grad():
+      for data, target in valid_loader:
+          # data, target = Variable(data, volatile=True).cuda(), Variable(target).cuda() # if you have access to a gpu
+          output = model(data)
+          # valid_loss += F.nll_loss(output, target, size_average=False).data[0] # sum up batch loss
+          valid_loss += F.nll_loss(output, target, reduction='sum').data.item() # sum up batch loss
+          pred = output.data.max(1, keepdim=True)[1] # get the index of the max log-probability
+          correct += pred.eq(target.data.view_as(pred)).cpu().sum()
 
     valid_loss /= len(valid_loader.dataset)
-    print('\n' + "valid" + ' set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
+    print("valid" + ' set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)'.format(
         valid_loss, correct, len(valid_loader.dataset),
         100. * correct / len(valid_loader.dataset)))
-    return correct / len(valid_loader.dataset)
-
+    return float(correct) / float(len(valid_loader.dataset))
     
 def test(model, test_loader):
     model.eval()
     test_loss = 0
     correct = 0
-    for data, target in test_loader:
-        # data, target = Variable(data, volatile=True).cuda(), Variable(target).cuda() # if you have access to a gpu
-        data, target = Variable(data, volatile=True), Variable(target)
-        output = model(data)
-        test_loss += F.nll_loss(output, target, size_average=False).data[0] # sum up batch loss
-        pred = output.data.max(1, keepdim=True)[1] # get the index of the max log-probability
-        correct += pred.eq(target.data.view_as(pred)).cpu().sum()
+    with torch.no_grad():
+      for data, target in test_loader:
+          # data, target = Variable(data, volatile=True).cuda(), Variable(target).cuda() # if you have access to a gpu
+          # data, target = Variable(data, volatile=True), Variable(target) #deprecated
+          output = model(data)
+          # test_loss += F.nll_loss(output, target, size_average=False).data[0] # sum up batch loss
+          test_loss += F.nll_loss(output, target, reduction='sum').data.item() # sum up batch loss
+          pred = output.data.max(1, keepdim=True)[1] # get the index of the max log-probability
+          correct += pred.eq(target.data.view_as(pred)).cpu().sum()
 
     test_loss /= len(test_loader.dataset)
-    print('\n' + "test" + ' set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
+    print('/n' + "test" + ' set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
     
-    
+
+# ======================= COMPARING MODELS =========================
 def experiment(model, epochs=10, lr=0.001):
     best_precision = 0
     optimizer = optim.Adam(model.parameters(), lr=lr)
@@ -131,7 +182,9 @@ def experiment(model, epochs=10, lr=0.001):
     return best_model, best_precision
 
 best_precision = 0
-for model in [FcNetwork()]:  # add your models in the list
+models = [DeepNet()] # add your models in the list
+for model in models:
+    print("\n======================= Model: %s =====================" % model.__class__.__name__)
     # model.cuda()  # if you have access to a gpu
     model, precision = experiment(model)
     if precision > best_precision:
