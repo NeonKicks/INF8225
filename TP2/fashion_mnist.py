@@ -58,6 +58,21 @@ test_loader = torch.utils.data.DataLoader(
     batch_size=test_batch_size, shuffle=True)
 
 
+def print_shape(x):
+    if len(x.shape) == 1:
+        print("x.shape [%d]" % (x.shape[0]))
+    elif len(x.shape) == 2:
+        print("x.shape [%d,%d]" % (x.shape[0], x.shape[1]))
+    elif len(x.shape) == 3:
+        print("x.shape [%d,%d,%d]" % (x.shape[0], x.shape[1], x.shape[2]))
+    elif len(x.shape) == 4:
+        print("x.shape [%d,%d,%d,%d]" % (x.shape[0], x.shape[1], x.shape[2], x.shape[3]))
+    elif len(x.shape) == 5:
+        print("x.shape [%d,%d,%d,%d,%d]" % (x.shape[0], x.shape[1], x.shape[2], x.shape[3], x.shape[4]))
+    else:
+        print("too many dims...")
+
+
 # ==== Display an image in the dataset ====
 # plt.imshow(train_loader.dataset.train_data[1].numpy())
 # plt.show()
@@ -74,7 +89,7 @@ test_loader = torch.utils.data.DataLoader(
 #       (Gives probabilities on the target classes)
 class FcNetwork(nn.Module):
     def __init__(self):
-        super().__init__()
+        super(FcNetwork,self).__init__()
         self.fc1 = nn.Linear(28*28, 512)
         self.fc2 = nn.Linear(512, 10)
     
@@ -90,19 +105,36 @@ class FcNetwork(nn.Module):
 #   - 1st convolution layer using relu activation
 #   - 2nd linear transformation layer using relu activation
 #       (Gives probabilities on the target classes)
-class OneConvOneFC(nn.Module):
+class OneConvOneFCRelu(nn.Module):
     def __init__(self):
-        super(OneConvOneFC, self).__init__()
-        self.conv1 = nn.Conv2d(1, 20, 5, 1)
-        self.fc1 = nn.Linear(24 * 24 * 20, 10)
+        super(OneConvOneFCRelu, self).__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5, 1, padding=2)
+        self.fc1 = nn.Linear(28*28 * 20, 10)
 
     def forward(self, x):
         x = F.relu(self.conv1(x))
-        x = x.view(-1, 24 * 24 * 20)
+        x = x.view(-1, 28*28 * 20)
         x = F.log_softmax(self.fc1(x), dim=1)
         return F.log_softmax(x, dim=1)
 
 # Model (3):
+# Convolutional neural-network of 2 hidden layers
+#   - 1st convolution layer using relu activation
+#   - 2nd linear transformation layer using relu activation
+#       (Gives probabilities on the target classes)
+class OneConvOneFCSig(nn.Module):
+    def __init__(self):
+        super(OneConvOneFCSig, self).__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5, 1, padding=2)
+        self.fc1 = nn.Linear(28*28 * 20, 10)
+
+    def forward(self, x):
+        x = torch.sigmoid(self.conv1(x))
+        x = x.view(-1, 28*28 * 20)
+        x = F.log_softmax(self.fc1(x), dim=1)
+        return F.log_softmax(x, dim=1)
+
+# Model (4):
 # Convolutional neural network of X hidden layers:
 #   - Convolution layer #1 using relu activation
 #   - Pooling (downsampling) layer #1
@@ -110,16 +142,22 @@ class OneConvOneFC(nn.Module):
 #   - Pooling (downsampling) layer #2
 #   - Fully-connected layer #1 (linear transformation) with relu activation
 #   - Fully-connected layer #2 (linear transformation) with softmax activation
-class DeepNet(nn.Module):
+class OneConvDownsample(nn.Module):
     def __init__(self):
-        super(DeepNet, self).__init__()
-        #TODO
+        super(OneConvDownsample, self).__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5, 1, padding=2)
+        self.fc1 = nn.Linear(14*14 * 20, 10)
 
     def forward(self, x):
-        #TODO
-        return F.log_softmax(x, dim=1)
+        x = F.relu(self.conv1(x))
+        x = F.max_pool2d(x, 2, 2)
+        x = x.view(-1, 14*14 * 20)
+        return F.log_softmax(self.fc1(x), dim=1)
 
-# Model (4):
+
+    
+
+# Model (5):
 # Convolutional neural network of 6 hidden layers:
 #   - Convolution layer #1 using relu activation
 #   - Pooling (downsampling) layer #1
@@ -214,7 +252,7 @@ def experiment(model, epochs=10, lr=0.001):
     return best_model, best_precision
 
 best_precision = 0
-models = [FcNetwork(), OneConvOneFC(), DeepNet()] # add your models in the list
+models = [FcNetwork(), OneConvOneFCSig(), OneConvOneFCRelu(), OneConvDownsample(), DeepNet()] # add your models in the list
 for model in models:
     print("\n======================= Model: %s =====================" % model.__class__.__name__)
     # model.cuda()  # if you have access to a gpu
