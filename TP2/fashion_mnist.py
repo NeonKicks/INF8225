@@ -102,26 +102,8 @@ class FcNetwork(nn.Module):
 
 # Model (2):
 # Convolutional neural-network of 2 hidden layers
-#   - 1st convolution layer using relu activation
-#   - 2nd linear transformation layer using relu activation
-#       (Gives probabilities on the target classes)
-class OneConvOneFCRelu(nn.Module):
-    def __init__(self):
-        super(OneConvOneFCRelu, self).__init__()
-        self.conv1 = nn.Conv2d(1, 20, 5, 1, padding=2)
-        self.fc1 = nn.Linear(28*28 * 20, 10)
-
-    def forward(self, x):
-        x = F.relu(self.conv1(x))
-        x = x.view(-1, 28*28 * 20)
-        x = F.log_softmax(self.fc1(x), dim=1)
-        return F.log_softmax(x, dim=1)
-
-# Model (3):
-# Convolutional neural-network of 2 hidden layers
-#   - 1st convolution layer using relu activation
-#   - 2nd linear transformation layer using relu activation
-#       (Gives probabilities on the target classes)
+#   - convolution layer using sigmoid activation
+#   - linear transformation layer using softmax activation
 class OneConvOneFCSig(nn.Module):
     def __init__(self):
         super(OneConvOneFCSig, self).__init__()
@@ -134,14 +116,27 @@ class OneConvOneFCSig(nn.Module):
         x = F.log_softmax(self.fc1(x), dim=1)
         return F.log_softmax(x, dim=1)
 
+# Model (3):
+# Convolutional neural-network of 2 hidden layers
+#   - convolution layer using relu activation
+#   - linear transformation layer using softmax activation
+class OneConvOneFCRelu(nn.Module):
+    def __init__(self):
+        super(OneConvOneFCRelu, self).__init__()
+        self.conv1 = nn.Conv2d(1, 20, 5, 1, padding=2)
+        self.fc1 = nn.Linear(28*28 * 20, 10)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        x = x.view(-1, 28*28 * 20)
+        x = F.log_softmax(self.fc1(x), dim=1)
+        return F.log_softmax(x, dim=1)
+
 # Model (4):
-# Convolutional neural network of X hidden layers:
-#   - Convolution layer #1 using relu activation
-#   - Pooling (downsampling) layer #1
-#   - Convolution layer #2 using relu activation
-#   - Pooling (downsampling) layer #2
-#   - Fully-connected layer #1 (linear transformation) with relu activation
-#   - Fully-connected layer #2 (linear transformation) with softmax activation
+# Convolutional neural network of 3 hidden layers:
+#   - Convolution layer using relu activation
+#   - Pooling (downsampling) layer
+#   - Fully-connected layer (linear transformation) with softmax activation
 class OneConvDownsample(nn.Module):
     def __init__(self):
         super(OneConvDownsample, self).__init__()
@@ -153,9 +148,6 @@ class OneConvDownsample(nn.Module):
         x = F.max_pool2d(x, 2, 2)
         x = x.view(-1, 14*14 * 20)
         return F.log_softmax(self.fc1(x), dim=1)
-
-
-    
 
 # Model (5):
 # Convolutional neural network of 6 hidden layers:
@@ -285,8 +277,10 @@ for model in models:
 
 # save plot
 plt.figure("Precisions")
+plt.legend(loc='upper left')
 plt.savefig("PrecisionsPlot.png")
 plt.figure("Losses")
+plt.legend(loc='upper right')
 plt.savefig("LossPlot.png")
 
 plt.show()
