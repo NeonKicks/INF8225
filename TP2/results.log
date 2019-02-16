@@ -1,0 +1,91 @@
+Number of epochs: 10
+Learning rate: 0.001
+======================= Model: FcNetwork =====================
+Number of epochs: 10
+Learning rate: 0.001
+valid set: Average loss: 0.4209, Accuracy: 5098/6000 (84%)
+valid set: Average loss: 0.3786, Accuracy: 5198/6000 (86%)
+valid set: Average loss: 0.3508, Accuracy: 5255/6000 (87%)
+valid set: Average loss: 0.3407, Accuracy: 5267/6000 (87%)
+valid set: Average loss: 0.3142, Accuracy: 5358/6000 (89%)
+valid set: Average loss: 0.3217, Accuracy: 5308/6000 (88%)
+valid set: Average loss: 0.3215, Accuracy: 5327/6000 (88%)
+valid set: Average loss: 0.3028, Accuracy: 5348/6000 (89%)
+valid set: Average loss: 0.3042, Accuracy: 5370/6000 (89%)
+valid set: Average loss: 0.3132, Accuracy: 5304/6000 (88%)
+
+======================= Model: TwoConvNetwork =====================
+Number of epochs: 10
+Learning rate: 0.001000
+valid set: Average loss: 3.8616, Accuracy: 823/6000 (13%)
+valid set: Average loss: 3.6556, Accuracy: 889/6000 (14%)
+valid set: Average loss: 3.5453, Accuracy: 976/6000 (16%)
+valid set: Average loss: 3.4909, Accuracy: 968/6000 (16%)
+valid set: Average loss: 3.4700, Accuracy: 1056/6000 (17%)
+valid set: Average loss: 3.4095, Accuracy: 1055/6000 (17%)
+valid set: Average loss: 3.3833, Accuracy: 1072/6000 (17%)
+valid set: Average loss: 3.3634, Accuracy: 1082/6000 (18%)
+valid set: Average loss: 3.3378, Accuracy: 1124/6000 (18%)
+valid set: Average loss: 3.3417, Accuracy: 1141/6000 (19%)
+
+======================= Model: OneConvOneFC =====================
+Number of epochs: 10
+Learning rate: 0.001000
+valid set: Average loss: 0.3255, Accuracy: 5314/6000 (88%)
+valid set: Average loss: 0.3150, Accuracy: 5325/6000 (88%)
+valid set: Average loss: 0.3024, Accuracy: 5341/6000 (89%)
+valid set: Average loss: 0.3016, Accuracy: 5383/6000 (89%)
+valid set: Average loss: 0.3058, Accuracy: 5371/6000 (89%)
+valid set: Average loss: 0.2954, Accuracy: 5390/6000 (89%)
+valid set: Average loss: 0.3100, Accuracy: 5394/6000 (89%)
+valid set: Average loss: 0.3089, Accuracy: 5402/6000 (90%)
+valid set: Average loss: 0.3037, Accuracy: 5405/6000 (90%)
+valid set: Average loss: 0.3097, Accuracy: 5413/6000 (90%)
+
+test set: Average loss: 0.3168, Accuracy: 8952/10000 (89%)
+
+======================= Model: DeepNet =====================
+Number of epochs: 10
+Learning rate: 0.001
+valid set: Average loss: 0.3338, Accuracy: 5257/6000 (87%)
+valid set: Average loss: 0.2970, Accuracy: 5347/6000 (89%)
+valid set: Average loss: 0.2940, Accuracy: 5359/6000 (89%)
+valid set: Average loss: 0.2510, Accuracy: 5449/6000 (90%)
+valid set: Average loss: 0.2625, Accuracy: 5428/6000 (90%)
+valid set: Average loss: 0.2731, Accuracy: 5424/6000 (90%)
+valid set: Average loss: 0.2714, Accuracy: 5442/6000 (90%)
+valid set: Average loss: 0.2736, Accuracy: 5433/6000 (90%)
+valid set: Average loss: 0.2735, Accuracy: 5445/6000 (90%)
+valid set: Average loss: 0.3137, Accuracy: 5434/6000 (90%)
+
+test set: Average loss: 0.3251, Accuracy: 9070/10000 (90%)
+
+======================= Model: FcNetwork =====================
+Number of epochs: 10
+Learning rate: 0.01
+valid set: Average loss: 0.4906, Accuracy: 4926/6000 (82%)
+valid set: Average loss: 0.4912, Accuracy: 4972/6000 (82%)
+valid set: Average loss: 0.5788, Accuracy: 4779/6000 (79%)
+valid set: Average loss: 0.5098, Accuracy: 4899/6000 (81%)
+valid set: Average loss: 0.4804, Accuracy: 4961/6000 (82%)
+valid set: Average loss: 0.4766, Accuracy: 4987/6000 (83%)
+valid set: Average loss: 0.4519, Accuracy: 5028/6000 (83%)
+valid set: Average loss: 0.4961, Accuracy: 4977/6000 (82%)
+valid set: Average loss: 0.4350, Accuracy: 5047/6000 (84%)
+valid set: Average loss: 0.5298, Accuracy: 4800/6000 (80%)
+
+======================= Model: DeepNet =====================
+Number of epochs: 10
+Learning rate: 0.01
+valid set: Average loss: 0.3916, Accuracy: 5152/6000 (85%)
+valid set: Average loss: 0.3688, Accuracy: 5169/6000 (86%)
+valid set: Average loss: 0.3999, Accuracy: 5157/6000 (85%)
+valid set: Average loss: 0.3844, Accuracy: 5195/6000 (86%)
+valid set: Average loss: 0.3724, Accuracy: 5175/6000 (86%)
+valid set: Average loss: 0.3592, Accuracy: 5234/6000 (87%)
+valid set: Average loss: 0.3750, Accuracy: 5171/6000 (86%)
+valid set: Average loss: 0.3555, Accuracy: 5263/6000 (87%)
+valid set: Average loss: 0.3882, Accuracy: 5202/6000 (86%)
+valid set: Average loss: 0.3561, Accuracy: 5260/6000 (87%)
+
+test set: Average loss: 0.3952, Accuracy: 8630/10000 (86%)
