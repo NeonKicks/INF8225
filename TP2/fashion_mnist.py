@@ -9,6 +9,7 @@ import torch.nn.functional as F
 import torchvision
 import torchvision.transforms as transforms
 from fashion import FashionMNIST
+import time
 
 
 # ======================= IMPORTING DATA =========================
@@ -203,9 +204,9 @@ def valid(model, valid_loader):
           correct += pred.eq(target.data.view_as(pred)).cpu().sum()
 
     valid_loss /= len(valid_loader.dataset)
-    print("valid" + ' set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)'.format(
+    print("valid" + ' set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)'.format(
         valid_loss, correct, len(valid_loader.dataset),
-        100. * correct / len(valid_loader.dataset)))
+        100. * float(correct) / float(len(valid_loader.dataset))))
     return float(correct) / float(len(valid_loader.dataset)), valid_loss
     
 def test(model, test_loader):
@@ -223,19 +224,23 @@ def test(model, test_loader):
           correct += pred.eq(target.data.view_as(pred)).cpu().sum()
 
     test_loss /= len(test_loader.dataset)
-    print('\n' + "test" + ' set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
+    print('\n' + "test" + ' set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset),
-        100. * correct / len(test_loader.dataset)))
+        100. * float(correct) / float(len(test_loader.dataset))))
+
+    results[model.__class__.__name__].append(test_loss)
+    results[model.__class__.__name__].append(100. * float(correct) / float(len(test_loader.dataset)))
     
 
 # ======================= COMPARING MODELS =========================
-def experiment(model, epochs=10, lr=0.001):
+def experiment(model, epochs=1, lr=0.001):
     print("Number of epochs: %i" % epochs)
     print("Learning rate: %f" % lr)
     best_precision = 0
     optimizer = optim.Adam(model.parameters(), lr=lr)
     losses = []
     precisions = []
+    start_time = time.time()
 
     epochs = range(1, epochs + 1)
 
@@ -249,6 +254,12 @@ def experiment(model, epochs=10, lr=0.001):
             best_precision = precision
             best_model = model
 
+    # Store execution time in seconds
+    end_time = time.time()
+    model_training_time = end_time - start_time
+
+    results[model.__class__.__name__].append(model_training_time)
+
     plt.figure("Precisions")
     plt.plot(epochs, precisions, label=model.__class__.__name__)
     plt.figure("Losses")
@@ -257,11 +268,13 @@ def experiment(model, epochs=10, lr=0.001):
     return best_model, best_precision
 
 best_precision = 0
-models = [FcNetwork(), OneConvOneFCSig(), OneConvOneFCRelu(), OneConvDownsample(), DeepNet()] # add your models in the list
+models = [FcNetwork(), OneConvOneFCSig()] #, OneConvOneFCRelu(), OneConvDownsample(), DeepNet()] # add your models in the list
+results = {}
 for model in models:
     print("\n======================= Model: %s =====================" % model.__class__.__name__)
     # model.cuda()  # if you have access to a gpu
     
+    results[model.__class__.__name__] = []
     plt.figure("Precisions")
     plt.xlabel('Epoch number')
     plt.ylabel('Precision')
@@ -275,9 +288,18 @@ for model in models:
         best_precision = precision
         best_model = model
 
+
+print("\n======================= Model Performances =======================")
+print("|%-25s|%-12s|%-12s|%-12s|" % ("Model","Time","Loss","Accuracy"))
+print("----------------------------------------------------------------")
+for model, values in results.items():
+  print("|%-20s|%*.3f|%*.4f|%*.2f" % (model, 12, values[0], 12, values[1],12, values[2]))
+
+
+
 # save plot
 plt.figure("Precisions")
-plt.legend(loc='upper left')
+plt.legend(loc='lower right')
 plt.savefig("PrecisionsPlot.png")
 plt.figure("Losses")
 plt.legend(loc='upper right')
