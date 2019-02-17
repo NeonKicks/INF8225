@@ -233,7 +233,7 @@ def test(model, test_loader):
     
 
 # ======================= COMPARING MODELS =========================
-def experiment(model, epochs=1, lr=0.001):
+def experiment(model, epochs=10, lr=0.001):
     print("Number of epochs: %i" % epochs)
     print("Learning rate: %f" % lr)
     best_precision = 0
@@ -268,7 +268,7 @@ def experiment(model, epochs=1, lr=0.001):
     return best_model, best_precision
 
 best_precision = 0
-models = [FcNetwork(), OneConvOneFCSig()] #, OneConvOneFCRelu(), OneConvDownsample(), DeepNet()] # add your models in the list
+models = [FcNetwork(), OneConvOneFCSig(), OneConvOneFCRelu(), OneConvDownsample(), DeepNet()] # add your models in the list
 results = {}
 for model in models:
     print("\n======================= Model: %s =====================" % model.__class__.__name__)
@@ -290,10 +290,10 @@ for model in models:
 
 
 print("\n======================= Model Performances =======================")
-print("|%-25s|%-12s|%-12s|%-12s|" % ("Model","Time","Loss","Accuracy"))
-print("----------------------------------------------------------------")
+print("| %-24s| %-11s| %-11s| %-11s|" % ("Model","Time","Loss","Accuracy"))
+print("--------------------------+------------+------------+------------|")
 for model, values in results.items():
-  print("|%-20s|%*.3f|%*.4f|%*.2f" % (model, 12, values[0], 12, values[1],12, values[2]))
+  print("| %-24s| %-*.3f| %-*.4f| %-*.2f|" % (model, 11, values[0], 11, values[1], 11, values[2]))
 
 
 
