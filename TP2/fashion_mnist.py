@@ -267,6 +267,8 @@ def experiment(model, epochs=10, lr=0.001):
 
     return best_model, best_precision
 
+epoch_number = 20
+learning_rate = 0.0002
 best_precision = 0
 models = [FcNetwork(), OneConvOneFCSig(), OneConvOneFCRelu(), OneConvDownsample(), DeepNet()] # add your models in the list
 results = {}
@@ -282,7 +284,7 @@ for model in models:
     plt.figure("Losses")
     plt.xlabel('Epoch number')
     plt.ylabel('Negative Log-likelihood')
-    model, precision = experiment(model)
+    model, precision = experiment(model, epochs = epoch_number, lr = learning_rate)
     test(model, test_loader)
     if precision > best_precision:
         best_precision = precision
@@ -291,17 +293,20 @@ for model in models:
 
 print("\n======================= Model Performances =======================")
 print("| %-24s| %-11s| %-11s| %-11s|" % ("Model","Time","Loss","Accuracy"))
-print("--------------------------+------------+------------+------------|")
+
+print("|-------------------------+------------+------------+------------|")
 for model, values in results.items():
   print("| %-24s| %-*.3f| %-*.4f| %-*.2f|" % (model, 11, values[0], 11, values[1], 11, values[2]))
-
+print("------------------------------------------------------------------")
 
 
 # save plot
 plt.figure("Precisions")
+plt.xticks(np.arange(1, epoch_number + 1))
 plt.legend(loc='lower right')
 plt.savefig("PrecisionsPlot.png")
 plt.figure("Losses")
+plt.xticks(np.arange(1, epoch_number + 1))
 plt.legend(loc='upper right')
 plt.savefig("LossPlot.png")
 
