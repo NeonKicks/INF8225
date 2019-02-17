@@ -13,15 +13,6 @@ import numpy as np
 #%matplotlib inline  
 
 
-
-
-
-
-
-<<<<<<< HEAD
-=======
-
->>>>>>> f81e18b51d62314d4fb9f471a1ca305bce7d1d68
 ############ IMPORT DATA ############
 # Fetch data
 train_data = FashionMNIST('../data', train=True, download=True,
